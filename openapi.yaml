@@ -1,0 +1,1890 @@
+openapi: 3.1.0
+info:
+  title: goloom API
+  version: 1.0.0
+  description: |
+    goloom is a lightweight social planning API for teams and AI agents.
+    This spec documents core endpoints for auth, teams, accounts, posts, and analytics.
+servers:
+  - url: http://localhost:8080
+    description: Local development
+security:
+  - bearerAuth: []
+tags:
+  - name: Discovery
+  - name: Auth
+  - name: Teams
+  - name: Accounts
+  - name: Posts
+  - name: Analytics
+  - name: AI
+  - name: Admin
+paths:
+  /healthz:
+    get:
+      tags: [Discovery]
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /v1/providers:
+    get:
+      tags: [Discovery]
+      summary: List supported providers
+      security: []
+      responses:
+        "200":
+          description: Provider names
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      type: string
+                    example: [mastodon, friendica, bluesky]
+  /v1/auth/status:
+    get:
+      tags: [Auth]
+      summary: Get authentication/runtime auth flags
+      security: []
+      responses:
+        "200":
+          description: Auth status flags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+  /v1/me:
+    get:
+      tags: [Auth]
+      summary: Get authenticated principal
+      responses:
+        "200":
+          description: Authenticated principal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Principal"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /v1/teams:
+    get:
+      tags: [Teams]
+      summary: List teams visible to current user
+      responses:
+        "200":
+          description: Team list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Team"
+    post:
+      tags: [Teams]
+      summary: Create team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTeamInput"
+      responses:
+        "201":
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/invitations:
+    post:
+      tags: [Teams]
+      summary: Invite a user to the team by email (owner only)
+      description: |
+        Creates an email-bound invitation and returns the plaintext invite token
+        exactly once. Share it as `<app-url>/?invite=<token>`; the invitee joins
+        the team after signing in with the invited email address.
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTeamInvitationInput"
+      responses:
+        "201":
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invitation:
+                    $ref: "#/components/schemas/TeamInvitation"
+                  token:
+                    type: string
+                    description: Plaintext invite token; only returned here.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    get:
+      tags: [Teams]
+      summary: List pending invitations for the team (owner only)
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Pending invitations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TeamInvitation"
+  /v1/teams/{teamID}/invitations/{invitationID}:
+    delete:
+      tags: [Teams]
+      summary: Revoke a pending invitation (owner only)
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/invitationID"
+      responses:
+        "204":
+          description: Invitation revoked
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/invitations/accept:
+    post:
+      tags: [Teams]
+      summary: Accept a team invitation
+      description: |
+        Redeems an invite token for the signed-in user. The user's email must
+        match the invited email address.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        "200":
+          description: Membership created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMembership"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/accounts:
+    get:
+      tags: [Accounts]
+      summary: List social accounts for team
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Account list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SocialAccount"
+    post:
+      tags: [Accounts]
+      summary: Connect/create social account
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountInput"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialAccount"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/posts:
+    get:
+      tags: [Posts]
+      summary: List posts for team
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Post list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ScheduledPost"
+    post:
+      tags: [Posts]
+      summary: Create post (draft or scheduled)
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePostInput"
+      responses:
+        "201":
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          description: >-
+            Invalid input — missing title/team, or a target account that does not
+            exist or belongs to another team, or a per-account override keyed by
+            a non-target account.
+        "422":
+          description: Content exceeds a destination's character limit (or omits required media)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostValidationResponse"
+  /v1/teams/{teamID}/posts/validate:
+    post:
+      tags: [Posts]
+      summary: Validate post against account capabilities
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePostInput"
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostValidationResponse"
+  /v1/teams/{teamID}/posts/{postID}:
+    get:
+      tags: [Posts]
+      summary: Get post details
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/postID"
+      responses:
+        "200":
+          description: Post details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledPost"
+        "404":
+          description: Post not found
+    patch:
+      tags: [Posts]
+      summary: Partially update scheduled post
+      description: >-
+        Only fields present in the body are changed. Omitted fields (including post_versions)
+        remain unchanged. Reschedule with scheduled_at only.
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/postID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostPatch"
+      responses:
+        "200":
+          description: Post updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Post not found
+    delete:
+      tags: [Posts]
+      summary: Delete scheduled post
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/postID"
+      responses:
+        "204":
+          description: Post deleted
+        "404":
+          description: Post not found
+  /v1/teams/{teamID}/posts/{postID}/versions:
+    get:
+      tags: [Posts]
+      summary: List per-account content overrides (versions)
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/postID"
+      responses:
+        "200":
+          description: List of post versions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PostVersion"
+    patch:
+      tags: [Posts]
+      summary: Patch per-account content overrides
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/postID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                versions:
+                  type: array
+                  items:
+                    type: object
+                    required: [account_id, content]
+                    properties:
+                      account_id:
+                        type: string
+                        format: uuid
+                      content:
+                        type: string
+      responses:
+        "200":
+          description: Overrides updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PostVersion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/analytics:
+    get:
+      tags: [Analytics]
+      summary: Team analytics aggregate
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Team analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics_total:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                      format: int64
+                  top_posts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PostEngagementSummary"
+  /v1/teams/{teamID}/posts/{postID}/analytics:
+    get:
+      tags: [Analytics]
+      summary: Per-post metrics
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/postID"
+      responses:
+        "200":
+          description: Post metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PostMetric"
+  /v1/teams/{teamID}/profile:
+    get:
+      tags: [Teams]
+      summary: Get team AI profile
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Team profile details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamProfile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Teams]
+      summary: Create or update team AI profile
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertTeamProfileInput"
+      responses:
+        "200":
+          description: Team profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamProfile"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    delete:
+      tags: [Teams]
+      summary: Delete team AI profile
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "204":
+          description: Team profile deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/teams/{teamID}/campaign-formats:
+    get:
+      tags: [Teams]
+      summary: List campaign formats
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Campaign format list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CampaignFormat"
+    post:
+      tags: [Teams]
+      summary: Create campaign format
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCampaignFormatInput"
+      responses:
+        "201":
+          description: Campaign format created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignFormat"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/campaign-formats/{formatID}:
+    get:
+      tags: [Teams]
+      summary: Get campaign format by ID
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/formatID"
+      responses:
+        "200":
+          description: Campaign format details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignFormat"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Teams]
+      summary: Update campaign format
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/formatID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCampaignFormatInput"
+      responses:
+        "200":
+          description: Campaign format updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignFormat"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Teams]
+      summary: Delete campaign format
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/formatID"
+      responses:
+        "204":
+          description: Campaign format deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/teams/{teamID}/style-examples:
+    get:
+      tags: [AI]
+      summary: List style examples for team
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Style example list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StyleExample"
+    post:
+      tags: [AI]
+      summary: Create a style example
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStyleExampleInput"
+      responses:
+        "201":
+          description: Style example created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleExample"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/style-examples/{exampleID}:
+    delete:
+      tags: [AI]
+      summary: Delete a style example
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/exampleID"
+      responses:
+        "204":
+          description: Style example deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/teams/{teamID}/ai-context:
+    get:
+      tags: [AI]
+      summary: Get AI context for team
+      description: Returns the aggregated AI context including team profile, campaign formats, style examples, and recent posts.
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: AI context bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIContext"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/teams/{teamID}/ai-trigger:
+    post:
+      tags: [AI]
+      summary: Trigger an AI job
+      description: Submit an AI job for processing (voice_engine, campaign_autopilot, or proactive_trigger).
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AITriggerRequest"
+      responses:
+        "202":
+          description: AI job accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AITriggerResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          description: AI service not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/teams/{teamID}/ai-jobs:
+    get:
+      tags: [AI]
+      summary: List AI jobs for team
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: AI job list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AIJob"
+  /v1/teams/{teamID}/ai-jobs/{jobID}:
+    get:
+      tags: [AI]
+      summary: Get AI job details
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/jobID"
+      responses:
+        "200":
+          description: AI job details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIJob"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/teams/{teamID}/ai-jobs/{jobID}/cancel:
+    post:
+      tags: [AI]
+      summary: Cancel a pending or processing AI job
+      description: >-
+        Marks an active AI job as failed with error_message "cancelled".
+        Completed jobs cannot be cancelled. Already-failed jobs return the current state (idempotent).
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/jobID"
+      responses:
+        "200":
+          description: Cancelled AI job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIJob"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Job is already completed and cannot be cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/teams/{teamID}/ai-jobs/stream:
+    get:
+      tags: [AI]
+      summary: Stream AI job status events (SSE)
+      description: >-
+        Opens a Server-Sent Events connection for real-time AI job status updates.
+        Returns existing pending/processing jobs as replay, then streams new events.
+        Event types: job:status (pending/processing), job:result (completed/failed).
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - in: header
+          name: Last-Event-ID
+          schema:
+            type: string
+          required: false
+          description: Resume stream from this event ID
+      responses:
+        "200":
+          description: Server-Sent Events stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              example: |-
+                event: job:status
+                id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                data: {"id":"3fa85f64-5717-4562-b3fc-2c963f66afa6","team_id":"3fa85f64-5717-4562-b3fc-2c963f66afa6","type":"voice_engine","status":"processing","created_at":"2026-05-29T12:00:00Z"}
+  /v1/teams/{teamID}/posts/draft:
+    post:
+      tags: [Posts]
+      summary: Create AI-assisted draft post
+      description: Creates a scheduled post in draft mode, typically triggered by an AI job result.
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAIDraftInput"
+      responses:
+        "201":
+          description: Draft post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/rss-feeds:
+    get:
+      tags: [AI]
+      summary: List RSS feed configs
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: RSS feed config list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RSSFeedConfig"
+    post:
+      tags: [AI]
+      summary: Create RSS feed config
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRSSFeedInput"
+      responses:
+        "201":
+          description: RSS feed config created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RSSFeedConfig"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/rss-feeds/{feedID}:
+    patch:
+      tags: [AI]
+      summary: Update RSS feed config
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/feedID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRSSFeedInput"
+      responses:
+        "200":
+          description: RSS feed config updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RSSFeedConfig"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [AI]
+      summary: Delete RSS feed config
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+        - $ref: "#/components/parameters/feedID"
+      responses:
+        "204":
+          description: RSS feed config deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/teams/{teamID}/review-queue:
+    get:
+      tags: [Posts]
+      summary: List automation drafts awaiting review
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Review queue items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ReviewQueueItem"
+  /v1/teams/{teamID}/ai-service-config:
+    get:
+      tags: [AI]
+      summary: Get AI service config
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: AI service config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIServiceConfig"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [AI]
+      summary: Create or update AI service config
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertAIServiceConfigInput"
+      responses:
+        "200":
+          description: AI service config updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIServiceConfig"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/external-post-monitor:
+    get:
+      tags: [Analytics]
+      summary: Get external post monitor settings
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: External post monitor settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExternalPostMonitorSettings"
+    put:
+      tags: [Analytics]
+      summary: Enable or disable external post monitoring (owner only)
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertExternalPostMonitorInput"
+      responses:
+        "200":
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExternalPostMonitorSettings"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /v1/teams/{teamID}/proactive-settings:
+    get:
+      tags: [AI]
+      summary: Get proactive trigger settings
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Proactive trigger settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProactiveTriggerSettings"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [AI]
+      summary: Create or update proactive trigger settings
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertProactiveSettingsInput"
+      responses:
+        "200":
+          description: Proactive trigger settings updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProactiveTriggerSettings"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/teams/{teamID}/ai/chat:
+    post:
+      tags: [AI]
+      summary: AI chat assistant (SSE)
+      description: |
+        Streams an AI assistant conversation as Server-Sent Events. The
+        assistant can call tools that create drafts, campaign formats, and
+        automations for the team. Requires the `ai:chat` scope and a
+        configured team LLM provider.
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AIChatRequest"
+      responses:
+        "200":
+          description: SSE stream of chat events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          description: Team LLM provider not configured
+  /v1/admin/ai-enabled-teams:
+    get:
+      tags: [Admin]
+      summary: List AI-enabled teams
+      description: Returns all teams with AI features enabled. Requires admin scope.
+      responses:
+        "200":
+          description: AI-enabled team list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Team"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    teamID:
+      in: path
+      name: teamID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    postID:
+      in: path
+      name: postID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    jobID:
+      in: path
+      name: jobID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    formatID:
+      in: path
+      name: formatID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    exampleID:
+      in: path
+      name: exampleID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    feedID:
+      in: path
+      name: feedID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    invitationID:
+      in: path
+      name: invitationID
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token
+    BadRequest:
+      description: Invalid request body or parameters
+    NotFound:
+      description: Resource not found
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+    AuthStatus:
+      type: object
+      properties:
+        bootstrap_enabled:
+          type: boolean
+        bootstrap_recovery_enabled:
+          type: boolean
+        initial_setup_required:
+          type: boolean
+        oidc_enabled:
+          type: boolean
+        oidc_oauth_enabled:
+          type: boolean
+        has_users:
+          type: boolean
+        has_admin_users:
+          type: boolean
+        app_env:
+          type: string
+    Principal:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+            is_admin:
+              type: boolean
+    Team:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        is_ai_enabled:
+          type: boolean
+        scheduling_preferences:
+          type: object
+        brand_color:
+          type: string
+          description: Team accent color as "#rrggbb"; empty means default accent.
+          example: "#7c3aed"
+        created_at:
+          type: string
+          format: date-time
+    TeamInvitation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [editor, viewer]
+        expires_at:
+          type: string
+          format: date-time
+        created_by_user_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+    CreateTeamInvitationInput:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [editor, viewer]
+    TeamMembership:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [owner, editor, viewer]
+        created_at:
+          type: string
+          format: date-time
+    CreateTeamInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    SocialAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+        username:
+          type: string
+        instance_url:
+          type: string
+    CreateAccountInput:
+      type: object
+      required: [provider]
+      properties:
+        provider:
+          type: string
+          example: mastodon
+        provider_instance_id:
+          type: string
+          format: uuid
+        instance_url:
+          type: string
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        identifier:
+          type: string
+        app_password:
+          type: string
+    ScheduledPost:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        status:
+          type: string
+        source:
+          type: string
+          enum: [scheduled, imported, automation]
+        scheduled_at:
+          type: string
+          format: date-time
+        target_accounts:
+          type: array
+          items:
+            type: string
+            format: uuid
+    ReviewQueueItem:
+      allOf:
+        - $ref: "#/components/schemas/ScheduledPost"
+        - type: object
+          properties:
+            is_overdue:
+              type: boolean
+            rss_feed_name:
+              type: string
+    CreatePostInput:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+          description: >-
+            Required for every post (including drafts); it is never derived from
+            the body.
+        content:
+          type: string
+          description: Required for scheduled posts; may be empty for drafts.
+        scheduled_at:
+          type: string
+          format: date-time
+        target_accounts:
+          type: array
+          items:
+            type: string
+            format: uuid
+        visibility:
+          type: string
+          example: public
+        draft:
+          type: boolean
+        media_ids:
+          type: array
+          items:
+            type: string
+        account_content_override:
+          type: object
+          description: Per-account text overrides (Map AccountID -> Content)
+          additionalProperties:
+            type: string
+        use_versions:
+          type: boolean
+          description: >-
+            When true, validate character limits per account using overrides (or default content)
+            instead of failing on default content length alone.
+    UpdatePostPatch:
+      type: object
+      description: Partial update; omit fields to leave them unchanged.
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        scheduled_at:
+          type: string
+          format: date-time
+        target_accounts:
+          type: array
+          items:
+            type: string
+            format: uuid
+        visibility:
+          type: string
+        draft:
+          type: boolean
+        media_ids:
+          type: array
+          items:
+            type: string
+        media_exclude_by_account:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        account_content_override:
+          type: object
+          description: When sent, replaces all per-account overrides. When omitted, existing overrides are kept.
+          additionalProperties:
+            type: string
+    PostVersion:
+      type: object
+      properties:
+        post_id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        content:
+          type: string
+    PostValidationResponse:
+      type: object
+      properties:
+        max_chars:
+          type: integer
+        content_length:
+          type: integer
+        valid:
+          type: boolean
+        destinations:
+          type: array
+          items:
+            type: object
+            properties:
+              account_id:
+                type: string
+              provider:
+                type: string
+              max_chars:
+                type: integer
+    PostMetric:
+      type: object
+      properties:
+        post_id:
+          type: string
+        account_id:
+          type: string
+        metric:
+          type: string
+          example: likes
+        value:
+          type: integer
+          format: int64
+        updated_at:
+          type: string
+          format: date-time
+    PostEngagementSummary:
+      type: object
+      properties:
+        post_id:
+          type: string
+        title:
+          type: string
+        score:
+          type: integer
+          format: int64
+    # --- AI / Team schemas ---
+    TeamProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        style_metadata:
+          $ref: "#/components/schemas/StyleMetadata"
+        auto_publish_enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    UpsertTeamProfileInput:
+      type: object
+      required: [style_metadata]
+      properties:
+        style_metadata:
+          $ref: "#/components/schemas/StyleMetadata"
+        auto_publish_enabled:
+          type: boolean
+    CampaignFormat:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        weekday:
+          type: integer
+
+        structure:
+          type: object
+        required_hashtags:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateCampaignFormatInput:
+      type: object
+      required: [name, structure]
+      properties:
+        name:
+          type: string
+        weekday:
+          type: integer
+
+        structure:
+          type: object
+        required_hashtags:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+    UpdateCampaignFormatInput:
+      type: object
+      properties:
+        name:
+          type: string
+        weekday:
+          type: integer
+
+        structure:
+          type: object
+        required_hashtags:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+    StyleExample:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        platform:
+          type: string
+        content:
+          type: string
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    CreateStyleExampleInput:
+      type: object
+      required: [platform, content]
+      properties:
+        platform:
+          type: string
+        content:
+          type: string
+        notes:
+          type: string
+    StyleMetadata:
+      type: object
+      properties:
+        tonality:
+          type: string
+        formatting_rules:
+          type: array
+          items:
+            type: string
+        banned_words:
+          type: array
+          items:
+            type: string
+        max_hashtags:
+          type: integer
+        preferred_language:
+          type: string
+    AIJobType:
+      type: string
+      enum: [voice_engine, campaign_autopilot, proactive_trigger]
+    AIJobStatus:
+      type: string
+      enum: [pending, processing, completed, failed]
+    AIJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        author_user_id:
+          type: string
+          format: uuid
+        type:
+          $ref: "#/components/schemas/AIJobType"
+        status:
+          $ref: "#/components/schemas/AIJobStatus"
+        payload:
+          type: object
+        result:
+          type: object
+
+        error_message:
+          type: string
+
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+
+    AITriggerRequest:
+      type: object
+      required: [type]
+      properties:
+        type:
+          $ref: "#/components/schemas/AIJobType"
+        params:
+          type: object
+    AITriggerResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/AIJobStatus"
+    AIContext:
+      type: object
+      properties:
+        team:
+          $ref: "#/components/schemas/Team"
+        profile:
+          $ref: "#/components/schemas/TeamProfile"
+
+        campaign_formats:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampaignFormat"
+        style_examples:
+          type: array
+          items:
+            $ref: "#/components/schemas/StyleExample"
+        recent_posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScheduledPost"
+    RSSFeedConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        feed_url:
+          type: string
+          format: uri
+        name:
+          type: string
+        is_active:
+          type: boolean
+        ai_enhance_enabled:
+          type: boolean
+        content_template:
+          type: string
+        output_mode:
+          type: string
+          enum: [draft, scheduled, publish_now]
+        max_posts_per_day:
+          type: integer
+        counter_next:
+          type: integer
+        prompt_hint:
+          type: string
+        target_account_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tonality:
+          type: string
+        initial_sync_mode:
+          type: string
+          enum: [baseline, publish_latest]
+        last_fetched_at:
+          type: string
+          format: date-time
+
+        created_at:
+          type: string
+          format: date-time
+    CreateRSSFeedInput:
+      type: object
+      required: [feed_url, name]
+      properties:
+        feed_url:
+          type: string
+          format: uri
+        name:
+          type: string
+        is_active:
+          type: boolean
+        ai_enhance_enabled:
+          type: boolean
+        content_template:
+          type: string
+        output_mode:
+          type: string
+          enum: [draft, scheduled, publish_now]
+        max_posts_per_day:
+          type: integer
+        prompt_hint:
+          type: string
+        target_account_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tonality:
+          type: string
+        initial_sync_mode:
+          type: string
+          enum: [baseline, publish_latest]
+    UpdateRSSFeedInput:
+      type: object
+      properties:
+        feed_url:
+          type: string
+          format: uri
+        name:
+          type: string
+        is_active:
+          type: boolean
+        ai_enhance_enabled:
+          type: boolean
+        content_template:
+          type: string
+        output_mode:
+          type: string
+          enum: [draft, scheduled, publish_now]
+        max_posts_per_day:
+          type: integer
+        prompt_hint:
+          type: string
+        target_account_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tonality:
+          type: string
+        initial_sync_mode:
+          type: string
+          enum: [baseline, publish_latest]
+        last_fetched_at:
+          type: string
+          format: date-time
+    AIServiceConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+          enum: [openai, anthropic]
+        model:
+          type: string
+        base_url:
+          type: string
+          format: uri
+        api_key_set:
+          type: boolean
+          description: Whether an API key is stored. The key itself is never returned.
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    UpsertAIServiceConfigInput:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum: [openai, anthropic]
+        model:
+          type: string
+          description: Provider model id; empty uses the provider default.
+        base_url:
+          type: string
+          format: uri
+          description: Optional API base URL override.
+        api_key:
+          type: string
+          description: Write-only. Empty keeps the stored key.
+        description:
+          type: string
+    AIChatMention:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [campaign, recurring, rss]
+        id:
+          type: string
+        name:
+          type: string
+    AIChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        mentions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AIChatMention"
+    AIChatRequest:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AIChatMessage"
+    ExternalPostMonitorSettings:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        enabled:
+          type: boolean
+        backfill_completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_sync_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    UpsertExternalPostMonitorInput:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+    ProactiveTriggerSettings:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        content_gap_threshold_days:
+          type: integer
+        auto_fill_enabled:
+          type: boolean
+        max_triggers_per_day:
+          type: integer
+        cron_schedule:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    UpsertProactiveSettingsInput:
+      type: object
+      properties:
+        content_gap_threshold_days:
+          type: integer
+        auto_fill_enabled:
+          type: boolean
+        max_triggers_per_day:
+          type: integer
+        cron_schedule:
+          type: string
+    CreateAIDraftInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+        account_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        scheduled_at:
+          type: string
+          format: date-time
+        ai_job_id:
+          type: string
+          format: uuid
+        metadata:
+          type: object

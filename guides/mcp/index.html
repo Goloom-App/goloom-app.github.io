@@ -1,0 +1,263 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-26f6aohr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>MCP server | goloom</title><link rel="canonical" href="https://goloom-app.github.io/guides/mcp/"/><link rel="sitemap" href="/sitemap-index.xml"/><link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.0.3"/><meta name="generator" content="Starlight v0.41.1"/><meta property="og:title" content="MCP server"/><meta property="og:type" content="article"/><meta property="og:url" content="https://goloom-app.github.io/guides/mcp/"/><meta property="og:locale" content="en"/><meta property="og:description" content="goloom ships a built-in Model Context Protocol server so AI agents can plan and schedule posts with natural language."/><meta property="og:site_name" content="goloom"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="goloom ships a built-in Model Context Protocol server so AI agents can plan and schedule posts with natural language."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/_astro/print.ehPL0gv-.css" media="print"><style>:root{--brand-grad-from:#22d3ee;--brand-grad-to:#38bdf8;--brand-grad:linear-gradient(120deg, var(--brand-grad-from), var(--brand-grad-to));--brand-grad-soft:linear-gradient(120deg, color-mix(in oklab, var(--brand-grad-from) 18%, transparent), color-mix(in oklab, var(--brand-grad-to) 18%, transparent));--surface-0:#0a0a0f;--surface-1:#101018;--surface-2:#16161f;--glass-bg:#ffffff09;--glass-border:#ffffff14;--glass-border-strong:#ffffff24;--sl-color-accent-low:#0d3a45;--sl-color-accent:#06b6d4;--sl-color-accent-high:#7dd3fc;--sl-color-white:#f4f4f8;--sl-color-gray-1:#e6e7ee;--sl-color-gray-2:#c2c4cf;--sl-color-gray-3:#969aa8;--sl-color-gray-4:#6a6e7d;--sl-color-gray-5:#3a3d49;--sl-color-gray-6:#21232c;--sl-color-gray-7:#16171d;--sl-color-black:#0a0a0f;--sl-color-bg:var(--surface-0);--sl-color-bg-nav:#0a0a0fb8;--sl-color-bg-sidebar:#0d0d1399;--sl-color-hairline-shade:#ffffff0f}:root[data-theme=light]{--glass-bg:#0a0a1406;--glass-border:#0a0a1414;--glass-border-strong:#0a0a1424;--sl-color-accent-low:#cffafe;--sl-color-accent:#0891b2;--sl-color-accent-high:#155e75;--sl-color-white:#14141a;--sl-color-gray-1:#1f2027;--sl-color-gray-2:#34363f;--sl-color-gray-3:#5a5d69;--sl-color-gray-4:#8a8d99;--sl-color-gray-5:#c0c2cb;--sl-color-gray-6:#e8e9ee;--sl-color-gray-7:#f4f5f8;--sl-color-black:#fff;--sl-color-bg-nav:#ffffffbf;--sl-color-bg-sidebar:#f8f9fcb3}body{background-color:var(--surface-0);background-image:radial-gradient(70ch 45ch at 8% -12%, color-mix(in oklab, var(--brand-grad-from) 6%, transparent), transparent 70%);background-repeat:no-repeat;background-attachment:fixed}:root[data-theme=light] body{background-color:#fbfbfd;background-image:radial-gradient(70ch 45ch at 8% -12%, color-mix(in oklab, var(--brand-grad-from) 5%, transparent), transparent 70%)}.starlight-aside,header.header{backdrop-filter:blur(12px)}.grad-text{background:var(--brand-grad);color:#0000;background-clip:text}.glass{background:var(--glass-bg);border:1px solid var(--glass-border);backdrop-filter:blur(10px);border-radius:16px}.glow-btn{color:#04060a;background:var(--brand-grad-from);border-radius:8px;align-items:center;gap:.5rem;padding:.7rem 1.3rem;font-size:.98rem;font-weight:600;line-height:1;text-decoration:none;transition:background .15s;display:inline-flex}.glow-btn:hover{background:color-mix(in oklab, var(--brand-grad-from) 85%, white)}.ghost-btn{color:var(--sl-color-white);border:1px solid var(--glass-border-strong);background:0 0;border-radius:8px;align-items:center;gap:.5rem;padding:.75rem 1.4rem;font-size:.98rem;font-weight:600;line-height:1;text-decoration:none;transition:border-color .15s,background .15s;display:inline-flex}.ghost-btn:hover{border-color:color-mix(in oklab, var(--brand-grad-from) 50%, var(--glass-border-strong));background:var(--glass-bg)}
+</style><link rel="stylesheet" href="/_astro/common.DOSe22ag.css"><script type="module" src="/_astro/page.169VI7mI.js"></script></head><body class="astro-26f6aohr"><a href="#_top" class="astro-a4mn4s2s">Skip to content</a><div class="page sl-flex astro-vw2j6fbg"><header class="header astro-vw2j6fbg"><div class="header astro-akci4it5"><div class="title-wrapper sl-flex astro-akci4it5"><a href="/" class="site-title sl-flex astro-odzyvhez"><img class="astro-odzyvhez" alt="goloom" src="/_astro/favicon.rRT7muO5.svg" width="40" height="40"><span class="astro-odzyvhez" translate="no">goloom</span></a></div><div class="sl-flex print:hidden astro-akci4it5"><site-search class="astro-akci4it5 astro-ztq5wxhe" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-ztq5wxhe"><svg aria-hidden="true" class="astro-ztq5wxhe astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-ztq5wxhe" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-ztq5wxhe" style="display: none;"><kbd class="astro-ztq5wxhe">Ctrl</kbd><kbd class="astro-ztq5wxhe">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-ztq5wxhe"><div class="dialog-frame sl-flex astro-ztq5wxhe"><button data-close-modal class="sl-flex md:sl-hidden astro-ztq5wxhe">Cancel</button><div class="search-container astro-ztq5wxhe"><div id="starlight__search" class="astro-ztq5wxhe"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/_astro/Search.astro_astro_type_script_index_0_lang.BhbZRdaS.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-akci4it5"><div class="sl-flex social-icons astro-akci4it5"><a href="https://github.com/Goloom-App/goloom" rel="me" class="sl-flex astro-aumwdtyj"><span class="sr-only astro-aumwdtyj">GitHub</span><svg aria-hidden="true" class="astro-aumwdtyj astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-4qmoke3w"><span class="sr-only astro-4qmoke3w">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-4qmoke3w astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-4qmoke3w"><option value="dark" class="astro-4qmoke3w">Dark</option><option value="light" class="astro-4qmoke3w">Light</option><option value="auto" selected class="astro-4qmoke3w">Auto</option></select><svg aria-hidden="true" class="icon caret astro-4qmoke3w astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-vw2j6fbg" aria-label="Main"><starlight-menu-button class="print:hidden astro-rbrujyc6"><button aria-expanded="false" aria-label="Menu" aria-controls="starlight__sidebar" class="sl-flex md:sl-hidden astro-rbrujyc6"><svg aria-hidden="true" class="open-menu astro-rbrujyc6 astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-rbrujyc6 astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg></button></starlight-menu-button><script type="module">var e=class extends HTMLElement{btn=this.querySelector(`button`);constructor(){super(),this.btn.addEventListener(`click`,()=>this.toggleExpanded());let e=this.closest(`nav`);e&&e.addEventListener(`keyup`,e=>this.closeOnEscape(e))}setExpanded(e){this.setAttribute(`aria-expanded`,String(e)),document.body.toggleAttribute(`data-mobile-menu-expanded`,e)}toggleExpanded(){this.setExpanded(this.getAttribute(`aria-expanded`)!==`true`)}closeOnEscape(e){e.code===`Escape`&&(this.setExpanded(!1),this.btn.focus())}};customElements.define(`starlight-menu-button`,e);</script><div id="starlight__sidebar" class="sidebar-pane astro-vw2j6fbg"><div class="sidebar-content sl-flex astro-vw2j6fbg"><sl-sidebar-state-persist data-hash="0ptsuax" class="astro-bivsxpak"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-p4b6klqt"><li class="astro-p4b6klqt"><details open class="astro-p4b6klqt"><summary class="astro-p4b6klqt"><span class="group-label astro-p4b6klqt"><span class="large astro-p4b6klqt">Getting Started</span></span><svg aria-hidden="true" class="caret astro-p4b6klqt astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-p4b6klqt"><li class="astro-p4b6klqt"><a href="/getting-started/installation/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Installation</span></a></li><li class="astro-p4b6klqt"><a href="/getting-started/configuration/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Configuration</span></a></li><li class="astro-p4b6klqt"><a href="/getting-started/first-login/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">First login</span></a></li><li class="astro-p4b6klqt"><a href="/getting-started/kubernetes/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Kubernetes (Helm)</span></a></li></ul></details></li><li class="astro-p4b6klqt"><details open class="astro-p4b6klqt"><summary class="astro-p4b6klqt"><span class="group-label astro-p4b6klqt"><span class="large astro-p4b6klqt">Guides</span></span><svg aria-hidden="true" class="caret astro-p4b6klqt astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-p4b6klqt"><li class="astro-p4b6klqt"><a href="/guides/dashboard/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Dashboard</span></a></li><li class="astro-p4b6klqt"><a href="/guides/accounts/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Connect accounts</span></a></li><li class="astro-p4b6klqt"><a href="/guides/composer/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Composer</span></a></li><li class="astro-p4b6klqt"><a href="/guides/media-library/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Media library</span></a></li><li class="astro-p4b6klqt"><a href="/guides/content-calendar/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Content calendar</span></a></li><li class="astro-p4b6klqt"><a href="/guides/automation/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Automation</span></a></li><li class="astro-p4b6klqt"><a href="/guides/review-queue/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Review queue</span></a></li><li class="astro-p4b6klqt"><a href="/guides/analytics/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Analytics</span></a></li><li class="astro-p4b6klqt"><a href="/guides/ai-features/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">AI features</span></a></li><li class="astro-p4b6klqt"><a href="/guides/ai-assistant/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">AI assistant</span><span class="sl-badge tip small  astro-p4b6klqt astro-snjzzcyd">AI</span></a></li><li class="astro-p4b6klqt"><a href="/guides/mcp/" aria-current="page" class="astro-p4b6klqt"><span class="astro-p4b6klqt">MCP server</span><span class="sl-badge tip small  astro-p4b6klqt astro-snjzzcyd">AI</span></a></li><li class="astro-p4b6klqt"><a href="/guides/teams/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Teams &amp; roles</span></a></li><li class="astro-p4b6klqt"><a href="/guides/i18n/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Internationalization</span></a></li></ul></details></li><li class="astro-p4b6klqt"><details open class="astro-p4b6klqt"><summary class="astro-p4b6klqt"><span class="group-label astro-p4b6klqt"><span class="large astro-p4b6klqt">Administration</span></span><svg aria-hidden="true" class="caret astro-p4b6klqt astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-p4b6klqt"><li class="astro-p4b6klqt"><a href="/admin/administration/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Administration</span></a></li></ul></details></li><li class="astro-p4b6klqt"><details open class="astro-p4b6klqt"><summary class="astro-p4b6klqt"><span class="group-label astro-p4b6klqt"><span class="large astro-p4b6klqt">Migrations</span></span><svg aria-hidden="true" class="caret astro-p4b6klqt astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-p4b6klqt"><li class="astro-p4b6klqt"><a href="/migrations/docker-to-kubernetes/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">Docker → Kubernetes</span></a></li><li class="astro-p4b6klqt"><a href="/migrations/postgres-major-upgrade/" class="astro-p4b6klqt"><span class="astro-p4b6klqt">PostgreSQL major upgrade</span></a></li></ul></details></li><li class="astro-p4b6klqt"><a href="/api/" class="large astro-p4b6klqt" target="_self"><span class="astro-p4b6klqt">API Reference</span><span class="sl-badge tip small  astro-p4b6klqt astro-snjzzcyd">OpenAPI</span></a></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-a4nip4bo"><div class="social-icons astro-a4nip4bo"><a href="https://github.com/Goloom-App/goloom" rel="me" class="sl-flex astro-aumwdtyj"><span class="sr-only astro-aumwdtyj">GitHub</span><svg aria-hidden="true" class="astro-aumwdtyj astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-4qmoke3w"><span class="sr-only astro-4qmoke3w">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-4qmoke3w astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-4qmoke3w"><option value="dark" class="astro-4qmoke3w">Dark</option><option value="light" class="astro-4qmoke3w">Light</option><option value="auto" selected class="astro-4qmoke3w">Auto</option></select><svg aria-hidden="true" class="icon caret astro-4qmoke3w astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></div></nav><div class="main-frame astro-vw2j6fbg"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()}),addEventListener(`pageHide`,a);</script><div class="lg:sl-flex astro-4yxa5bd3"><aside class="right-sidebar-container print:hidden astro-4yxa5bd3"><div class="right-sidebar astro-4yxa5bd3"><div class="lg:sl-hidden astro-32smjo7d"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-ewhltc3v"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-ewhltc3v"><details id="starlight__mobile-toc" class="astro-ewhltc3v"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-ewhltc3v"><span class="toggle sl-flex astro-ewhltc3v">On this page<svg aria-hidden="true" class="caret astro-ewhltc3v astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-ewhltc3v"></span></summary><div class="dropdown astro-ewhltc3v"><ul class="isMobile astro-lkzppfoy" style="--depth: 0;"><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#_top" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Overview</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#endpoint" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Endpoint</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#configuration" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Configuration</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#authentication" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Authentication</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#connecting-a-client" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Connecting a client</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#available-tools" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Available tools</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#validation" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Validation</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#working-safely-with-agents" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Working safely with agents</span></a></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.BcSo_yiZ.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-32smjo7d"><div class="sl-container astro-32smjo7d"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-lkzppfoy" style="--depth: 0;"><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#_top" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Overview</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#endpoint" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Endpoint</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#configuration" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Configuration</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#authentication" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Authentication</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#connecting-a-client" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Connecting a client</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#available-tools" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Available tools</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#validation" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Validation</span></a></li><li style="--depth: 0;" class="astro-lkzppfoy"><a href="#working-safely-with-agents" style="--depth: 0;" class="astro-lkzppfoy"><span style="--depth: 0;" class="astro-lkzppfoy">Working safely with agents</span></a></li></ul></nav></starlight-toc><script type="module" src="/_astro/TableOfContents.astro_astro_type_script_index_0_lang.Csloo1VZ.js"></script></div></div></div></aside><div class="main-pane astro-4yxa5bd3"><main data-pagefind-body class="astro-26f6aohr" lang="en" dir="ltr"><div class="content-panel astro-ihdplkn2"><div class="sl-container astro-ihdplkn2"><h1 id="_top" class="astro-adx47xut">MCP server</h1></div></div><div class="content-panel astro-ihdplkn2"><div class="sl-container astro-ihdplkn2"><div class="sl-markdown-content"><p>goloom ships a <strong>built-in <a href="https://modelcontextprotocol.io">Model Context Protocol</a>
+(MCP) server</strong>. It lets AI agents — Claude, OpenClaw and any MCP-capable client —
+drive goloom with natural language: find a free slot, draft a post, schedule it,
+check analytics, and more, using a set of well-defined tools.</p>
+<p>The MCP server is <strong>enabled by default</strong> and runs inside the same goloom process —
+no extra service to deploy.</p>
+<p>The MCP tools are the <strong>same catalog</strong> that powers the in-app
+<a href="/guides/ai-assistant/">AI assistant</a>: a tool added in goloom is available to
+both surfaces with an identical contract. A couple of tools are in-app only
+(reading your current screen, revising the open composer draft) because they have
+no meaning over a stateless API; everything else listed below is shared.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="endpoint">Endpoint</h2><a class="sl-anchor-link" href="#endpoint"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Endpoint”</span></a></div>
+<p>The server speaks the modern <strong>Streamable HTTP</strong> transport
+(MCP spec 2025-03-26) at a single endpoint:</p>
+<div class="expressive-code"><link rel="stylesheet" href="/_astro/ec.v4551.css"><script type="module" src="/_astro/ec.0vx5m.js"></script><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="code"><span style="--0:#d6deeb;--1:#403f53">https://your-goloom-host/mcp</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="https://your-goloom-host/mcp"><div></div></button></div></figure></div>
+<ul>
+<li><code dir="auto">POST /mcp</code> carries JSON-RPC messages; responses are <code dir="auto">application/json</code> or a
+<code dir="auto">text/event-stream</code> stream.</li>
+<li><code dir="auto">GET /mcp</code> opens the optional server→client SSE stream.</li>
+</ul>
+<p>The trailing slash is optional (<code dir="auto">/mcp</code> and <code dir="auto">/mcp/</code> both work). The server runs
+<strong>stateless</strong>: each request is self-contained and authenticated on its own, so
+there is no session affinity to maintain — it works the same behind a single
+instance or several replicas.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="configuration">Configuration</h2><a class="sl-anchor-link" href="#configuration"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Configuration”</span></a></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code dir="auto">MCP_ENABLED</code></td>
+<td><code dir="auto">true</code></td>
+<td>Set to <code dir="auto">false</code> to disable the MCP server entirely.</td>
+</tr>
+<tr>
+<td><code dir="auto">MCP_RATE_LIMIT_PER_MINUTE</code></td>
+<td><code dir="auto">60</code></td>
+<td>Per-client request rate limit.</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="/getting-started/configuration/">configuration</a> for how environment
+variables are set.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="authentication">Authentication</h2><a class="sl-anchor-link" href="#authentication"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Authentication”</span></a></div>
+<p>The MCP endpoint uses the same <strong>bearer tokens</strong> as the REST API:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="http"><code><div class="ec-line"><div class="code"><span style="--1:#8844AE"><span style="--0:#CAECE6">Authorization</span><span style="--0:#C792EA">:</span></span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">Bearer &lt;api-token&gt;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Authorization: Bearer <api-token>"><div></div></button></div></figure></div>
+<p>A token with <strong>no scopes</strong> has full access. To restrict an agent, grant scopes
+(see <a href="/getting-started/first-login/">first login</a>):</p>
+<ul>
+<li><code dir="auto">read</code> — required to open the MCP connection and use any read tool (teams,
+posts, calendar, analytics, brand profile).</li>
+<li><code dir="auto">write:draft</code> / <code dir="auto">write:schedule</code> / <code dir="auto">write</code> — needed for <code dir="auto">draft_post</code> /
+<code dir="auto">schedule_post</code> / the campaign- and feed-creating tools.</li>
+<li><code dir="auto">delete</code> — needed for <code dir="auto">delete_post</code>.</li>
+</ul>
+<p>You can also bind a token to a <strong>single team</strong>. Grant only what an agent needs —
+for example <code dir="auto">read</code> + <code dir="auto">write:draft</code> for an agent that only prepares drafts.</p>
+<aside aria-label="Note" class="starlight-aside starlight-aside--note"><p class="starlight-aside__title" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="starlight-aside__icon"><path d="M12 11a1 1 0 0 0-1 1v4a1 1 0 0 0 2 0v-4a1 1 0 0 0-1-1Zm.38-3.92a1 1 0 0 0-.76 0 1 1 0 0 0-.33.21 1.15 1.15 0 0 0-.21.33 1 1 0 0 0 .21 1.09c.097.088.209.16.33.21A1 1 0 0 0 13 8a1.05 1.05 0 0 0-.29-.71 1 1 0 0 0-.33-.21ZM12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16.001A8 8 0 0 1 12 20Z"/></svg>Note</p><div class="starlight-aside__content"><p>The previous AI-specific scopes (<code dir="auto">ai:read:context</code>, <code dir="auto">ai:write:drafts</code>, …) were
+removed; re-create existing agent tokens with the scopes above.</p></div></aside>
+<div class="sl-heading-wrapper level-h2"><h2 id="connecting-a-client">Connecting a client</h2><a class="sl-anchor-link" href="#connecting-a-client"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Connecting a client”</span></a></div>
+<p>Point an MCP client at the endpoint and pass your token as a bearer header. The
+exact configuration depends on the client; a remote (Streamable HTTP) MCP server
+entry looks like this:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="json"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">{</span></div></div><div class="ec-line"><div class="code"><span class="indent">  </span><span style="--0:#7FDBCA;--1:#096E72">"mcpServers"</span><span style="--0:#D6DEEB;--1:#403F53">: {</span></div></div><div class="ec-line"><div class="code"><span class="indent">    </span><span style="--0:#7FDBCA;--1:#096E72">"goloom"</span><span style="--0:#D6DEEB;--1:#403F53">: {</span></div></div><div class="ec-line"><div class="code"><span class="indent">      </span><span style="--0:#7FDBCA;--1:#096E72">"url"</span><span style="--0:#D6DEEB;--1:#403F53">: </span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#C789D6;--1:#7C5686">https://your-goloom-host/mcp</span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#D6DEEB;--1:#403F53">,</span></div></div><div class="ec-line"><div class="code"><span class="indent">      </span><span style="--0:#7FDBCA;--1:#096E72">"headers"</span><span style="--0:#D6DEEB;--1:#403F53">: {</span></div></div><div class="ec-line"><div class="code"><span class="indent">        </span><span style="--0:#7FDBCA;--1:#096E72">"Authorization"</span><span style="--0:#D6DEEB;--1:#403F53">: </span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#C789D6;--1:#7C5686">Bearer &lt;api-token&gt;</span><span style="--0:#D9F5DD;--1:#111111">"</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">      </span></span><span style="--0:#D6DEEB;--1:#403F53">}</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">    </span></span><span style="--0:#D6DEEB;--1:#403F53">}</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">  </span></span><span style="--0:#D6DEEB;--1:#403F53">}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">}</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="{  &quot;mcpServers&quot;: {    &quot;goloom&quot;: {      &quot;url&quot;: &quot;https://your-goloom-host/mcp&quot;,      &quot;headers&quot;: {        &quot;Authorization&quot;: &quot;Bearer <api-token>&quot;      }    }  }}"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="available-tools">Available tools</h2><a class="sl-anchor-link" href="#available-tools"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Available tools”</span></a></div>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code dir="auto">get_teams</code></td>
+<td>List teams the token can access.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_platforms</code></td>
+<td>List connected accounts with provider, username and character limits.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_brand_profile</code></td>
+<td>Read the team’s tonality, style rules, identity and knowledge sources.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_calendar</code></td>
+<td>Get scheduled, pending and draft posts for a date range.</td>
+</tr>
+<tr>
+<td><code dir="auto">find_free_slot</code></td>
+<td>Find the next free time slot (supports weekday names).</td>
+</tr>
+<tr>
+<td><code dir="auto">schedule_post</code></td>
+<td>Schedule a post, with per-platform content overrides.</td>
+</tr>
+<tr>
+<td><code dir="auto">draft_post</code></td>
+<td>Save a post as a draft.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_posts</code></td>
+<td>List posts, optionally filtered by status.</td>
+</tr>
+<tr>
+<td><code dir="auto">modify_post</code></td>
+<td>Update content, schedule, targets or overrides of a post.</td>
+</tr>
+<tr>
+<td><code dir="auto">delete_post</code></td>
+<td>Delete a scheduled or draft post.</td>
+</tr>
+<tr>
+<td><code dir="auto">search_posts</code></td>
+<td>Search posts by text, date range or status.</td>
+</tr>
+<tr>
+<td><code dir="auto">create_campaign</code></td>
+<td>Create a campaign with structure, hashtags and instructions.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_campaign</code></td>
+<td>Read full campaign details.</td>
+</tr>
+<tr>
+<td><code dir="auto">create_recurring</code></td>
+<td>Create a recurring post template (RRULE schedule).</td>
+</tr>
+<tr>
+<td><code dir="auto">create_rss_feed</code></td>
+<td>Create an RSS feed automation with a content template.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_analytics</code></td>
+<td>Engagement totals (likes, reposts, replies) for a team plus its top posts.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_account_growth</code></td>
+<td>Follower/following/post counts over time, with start, end and delta — for follower-growth questions.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_metric_history</code></td>
+<td>A single engagement metric (likes, reposts, replies) as a daily time series with start, end and delta.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_hashtag_performance</code></td>
+<td>Best-performing hashtags from published-post analytics.</td>
+</tr>
+<tr>
+<td><code dir="auto">get_analytics_timeslots</code></td>
+<td>Best times to post: weekday/hour slots ranked by historical engagement, in a chosen timezone.</td>
+</tr>
+</tbody>
+</table>
+<div class="sl-heading-wrapper level-h2"><h2 id="validation">Validation</h2><a class="sl-anchor-link" href="#validation"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Validation”</span></a></div>
+<p><code dir="auto">schedule_post</code>, <code dir="auto">draft_post</code>, <code dir="auto">modify_post</code>, <code dir="auto">create_recurring</code> and
+<code dir="auto">create_rss_feed</code> validate their input before anything is stored:</p>
+<ul>
+<li><strong>A title is required.</strong> Every post needs an explicit <code dir="auto">title</code> (including
+drafts) — it is never derived from the body. Automations (RSS/AI) generate one
+when there is no human title.</li>
+<li><strong>A team is required.</strong> <code dir="auto">team_id</code> must be set; a post is never stored with an
+inferred or empty team.</li>
+<li><strong>Targets must belong to the team.</strong> Every account in <code dir="auto">target_accounts</code> must
+exist and belong to <code dir="auto">team_id</code>; cross-team or unknown accounts are rejected.</li>
+<li><strong>Character limits are enforced</strong> when a post is scheduled (not for drafts).
+If the content — or a per-account <code dir="auto">account_content_override</code> — exceeds a
+destination’s limit, the call fails with a message naming the account, so the
+agent can shorten the text or add a fitting override and retry.</li>
+<li><strong>Overrides are never silently dropped.</strong> An <code dir="auto">account_content_override</code> keyed
+by an account that is not in <code dir="auto">target_accounts</code> is an error, not a no-op.</li>
+</ul>
+<div class="sl-heading-wrapper level-h2"><h2 id="working-safely-with-agents">Working safely with agents</h2><a class="sl-anchor-link" href="#working-safely-with-agents"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Working safely with agents”</span></a></div>
+<ul>
+<li>Scope tokens tightly (<code dir="auto">read</code> only, when an agent should not write) and bind
+them to a single team where possible.</li>
+<li>Route agent output through the <a href="/guides/review-queue/">review queue</a> so a human
+approves before anything publishes.</li>
+<li>Every action is recorded in the team <a href="/admin/administration/">audit log</a>,
+attributed to the API key that performed it.</li>
+</ul>
+<p>For the raw HTTP endpoints behind these tools, see the
+<a href="/api/">API reference</a>.</p>
+</div><footer class="sl-flex astro-5mdt2vc2"><div class="meta sl-flex astro-5mdt2vc2"><a href="https://github.com/Goloom-App/goloom/edit/main/website/src/content/docs/src/content/docs/guides/mcp.md" class="sl-flex print:hidden astro-2blu3smq"><svg aria-hidden="true" class="astro-2blu3smq astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>Edit page</a></div><div class="pagination-links print:hidden astro-ecxf4cuu" dir="ltr"><a href="/guides/ai-assistant/" rel="prev" class="astro-ecxf4cuu"><svg aria-hidden="true" class="astro-ecxf4cuu astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-ecxf4cuu">Previous<br class="astro-ecxf4cuu"><span class="link-title astro-ecxf4cuu">AI assistant</span></span></a><a href="/guides/teams/" rel="next" class="astro-ecxf4cuu"><svg aria-hidden="true" class="astro-ecxf4cuu astro-bx56qeb2" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg><span class="astro-ecxf4cuu">Next<br class="astro-ecxf4cuu"><span class="link-title astro-ecxf4cuu">Teams &amp; roles</span></span></a></div></footer><div class="goloom-docs-footer astro-jo6i4kqk"><a href="/" class="astro-jo6i4kqk">← Back to goloom.dev</a><span class="astro-jo6i4kqk">© 2026 goloom · <a href="https://github.com/Goloom-App/goloom" class="astro-jo6i4kqk">Source</a> · <a href="/api/" class="astro-jo6i4kqk">API reference</a> · <a href="/legal/" class="astro-jo6i4kqk">License</a></span></div></div></div></main></div></div></div></div></body></html>
